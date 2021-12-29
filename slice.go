@@ -17,7 +17,7 @@ func FromSlice[T any](ctx context.Context, inp []T) *Iter[T] {
 
 // ToSlice consumes all of an iterator's elements and returns them as a slice.
 // Be sure your input isn't infinite, or very large!
-// (Consider using FirstN to limit
+// (Consider using FirstN to ensure the input has a reasonable size.)
 func ToSlice[T any](ctx context.Context, inp *Iter[T]) ([]T, error) {
 	var result []T
 	for {
