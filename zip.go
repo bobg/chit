@@ -2,6 +2,9 @@ package chit
 
 import "context"
 
+// Zip takes two iterators and produces a new iterator containing pairs of corresponding elements.
+// If one input iterator ends before the other,
+// Zip produces zero values of the appropriate type in constructing pairs.
 func Zip[T, U any](ctx context.Context, t *Iter[T], u *Iter[U]) *Iter[Pair[T, U]] {
 	return New(ctx, func(ctx context.Context, ch chan<- Pair[T, U]) error {
 		okx, oky := true, true

@@ -36,7 +36,7 @@ func New[T any](ctx context.Context, writer func(context.Context, chan<- T) erro
 	return iter
 }
 
-// Read reads the next item
+// Read reads the next item from the iterator.
 func (it *Iter[T]) Read() (T, bool, error) {
 	select {
 	case x, ok := <-it.ch:
@@ -49,6 +49,9 @@ func (it *Iter[T]) Read() (T, bool, error) {
 	}
 }
 
+// Cancel cancels the context in the iterator.
+// This normally causes the iterator's "writer" function to terminate early,
+// closing the iterator's underlying channel and causing Read calls to return context.Canceled.
 func (it *Iter[T]) Cancel() {
 	it.cancel()
 }

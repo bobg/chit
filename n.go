@@ -2,6 +2,9 @@ package chit
 
 import "context"
 
+// FirstN produces an iterator containing the first n elements of the input
+// (or all of the input, if there are fewer than n elements).
+// Excess elements in the input are discarded by calling inp.Cancel.
 func FirstN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
 	return New(ctx, func(ctx context.Context, ch chan<- T) error {
 		defer inp.Cancel()
@@ -24,6 +27,11 @@ func FirstN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
 	})
 }
 
+// LastN produces an iterator containing the last n elements of the input
+// (or all of the input, if there are fewer than n elements).
+// This requires buffering up to n elements.
+// There is no guarantee that any elements will ever be produced:
+// the input iterator may be infinite!
 func LastN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
 	return New(ctx, func(ctx context.Context, ch chan<- T) error {
 		var (

@@ -5,6 +5,13 @@ import (
 	"sync"
 )
 
+// Dup[T] duplicates the contents of an iterator,
+// producing n new iterators,
+// each containing the members of the original.
+//
+// An internal buffer grows to roughly the size
+// of the difference between the output iterator that is farthest ahead in the stream,
+// and the one that is farthest behind.
 func Dup[T any](ctx context.Context, inp *Iter[T], n int) []*Iter[T] {
 	var (
 		mu        sync.Mutex
@@ -73,7 +80,7 @@ func Dup[T any](ctx context.Context, inp *Iter[T], n int) []*Iter[T] {
 					return err
 				}
 			}
-		}) 
+		})
 
 		iters = append(iters, iter)
 	}
