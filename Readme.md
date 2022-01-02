@@ -1,9 +1,6 @@
 # Chit - Channel-based generic iterators
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/bobg/chit.svg)](https://pkg.go.dev/github.com/bobg/chit)
-[![Go Report Card](https://goreportcard.com/badge/github.com/bobg/chit)](https://goreportcard.com/report/github.com/bobg/chit)
 [![Tests](https://github.com/bobg/chit/actions/workflows/go.yml/badge.svg)](https://github.com/bobg/chit/actions/workflows/go.yml)
-[![Coverage Status](https://coveralls.io/repos/github/bobg/chit/badge.svg?branch=master)](https://coveralls.io/github/bobg/chit?branch=master)
 
 This is chit,
 an implementation of channel-based generic iterators for Go 1.18 and later.
@@ -18,17 +15,25 @@ Chit defines functions for operating on channels as generic iterators.
 
 FUNCTIONS
 
+func Send[T any](ctx context.Context, ch chan<- T, x T) error
+    Send sends a value on a channel but returns early (with an error) if the
+    context is canceled before the value can be sent.
+
+func ToMap[K comparable, V any](ctx context.Context, inp *Iter[Pair[K, V]]) (map[K]V, error)
+    ToMap consumes all of an iterator's elements and returns them as a map of
+    pairs.
+
 func ToSlice[T any](ctx context.Context, inp *Iter[T]) ([]T, error)
     ToSlice consumes all of an iterator's elements and returns them as a slice.
     Be sure your input isn't infinite, or very large! (Consider using FirstN to
-    limit
+    ensure the input has a reasonable size.)
 
 
 TYPES
 
 type Iter[T any] struct {
 	// Err contains any error that might have closed the channel prematurely.
-	// Callers should read it only after a call to Iter.Read returns a false "ok" value.
+	// Callers should read it only after a call to Iter.Next returns a false "ok" value.
 	Err error
 
 	// Has unexported fields.
@@ -64,6 +69,9 @@ func FirstN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T]
     all of the input, if there are fewer than n elements). Excess elements in
     the input are discarded by calling inp.Cancel.
 
+func FromMap[K comparable, V any](ctx context.Context, inp map[K]V) *Iter[Pair[K, V]]
+    FromMap creates a channel iterator over a map.
+
 func FromSlice[T any](ctx context.Context, inp []T) *Iter[T]
     FromSlice creates a channel iterator over a slice.
 
@@ -90,7 +98,7 @@ func Group[T any, U comparable](ctx context.Context, inp *Iter[T], partition fun
           wg     sync.WaitGroup
         )
         for {
-          pair, ok, err := groups.Read()
+          pair, ok, err := groups.Next()
           // ...check err...
           if !ok {
             break
@@ -100,7 +108,7 @@ func Group[T any, U comparable](ctx context.Context, inp *Iter[T], partition fun
             defer wg.Done()
             partitionKey, partitionItems := pair.X, pair.Y
             for {
-              item, ok, err := partitionItems.Read()
+              item, ok, err := partitionItems.Next()
               // ...check err...
               if !ok {
                 break
@@ -136,6 +144,13 @@ func Repeat[T any](ctx context.Context, val T) *Iter[T]
     Useful in combination with FirstN when you want a certain number of the same
     item.
 
+func SQL[T any](ctx context.Context, db QueryerContext, query string, args ...any) *Iter[T]
+    SQL[T] performs a query against db and returns the results as an iterator of
+    type T. T must be a struct type whose fields have the same types, in the
+    same order, as the values being queried. The values produced by the iterator
+    will be instances of that struct type, with fields populated by the queried
+    values.
+
 func Zip[T, U any](ctx context.Context, t *Iter[T], u *Iter[U]) *Iter[Pair[T, U]]
     Zip takes two iterators and produces a new iterator containing pairs of
     corresponding elements. If one input iterator ends before the other, Zip
@@ -144,14 +159,20 @@ func Zip[T, U any](ctx context.Context, t *Iter[T], u *Iter[U]) *Iter[Pair[T, U]
 func (it *Iter[T]) Cancel()
     Cancel cancels the context in the iterator. This normally causes the
     iterator's "writer" function to terminate early, closing the iterator's
-    underlying channel and causing Read calls to return context.Canceled.
+    underlying channel and causing Next calls to return context.Canceled.
 
-func (it *Iter[T]) Read() (T, bool, error)
-    Read reads the next item from the iterator.
+func (it *Iter[T]) Next() (T, bool, error)
+    Next reads the next item from the iterator.
 
 type Pair[T, U any] struct {
 	X T
 	Y U
 }
     Pair is a simple generic pair struct.
+
+type QueryerContext interface {
+	QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
+}
+    QueryerContext is a minimal interface satisfied by *sql.DB (from
+    database/sql).
 ```
