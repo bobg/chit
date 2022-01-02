@@ -16,7 +16,8 @@ func FromMap[K comparable, V any](ctx context.Context, inp map[K]V) *Iter[Pair[K
 	})
 }
 
-// ToMap consumes all of an iterator's elements and returns them as a map of pairs.
+// ToMap consumes all the elements of an iterator over key-value pairs and returns them as a map.
+// All but the last of any pairs with duplicate keys are overwritten.
 func ToMap[K comparable, V any](ctx context.Context, inp *Iter[Pair[K, V]]) (map[K]V, error) {
 	result := make(map[K]V)
 	for {

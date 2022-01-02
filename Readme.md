@@ -20,8 +20,9 @@ func Send[T any](ctx context.Context, ch chan<- T, x T) error
     context is canceled before the value can be sent.
 
 func ToMap[K comparable, V any](ctx context.Context, inp *Iter[Pair[K, V]]) (map[K]V, error)
-    ToMap consumes all of an iterator's elements and returns them as a map of
-    pairs.
+    ToMap consumes all the elements of an iterator over key-value pairs and
+    returns them as a map. All but the last of any pairs with duplicate keys are
+    overwritten.
 
 func ToSlice[T any](ctx context.Context, inp *Iter[T]) ([]T, error)
     ToSlice consumes all of an iterator's elements and returns them as a slice.
