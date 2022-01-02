@@ -29,7 +29,7 @@ func TestGroup(t *testing.T) {
 		go func() {
 			s, err := ToSlice(ctx, pair.Y)
 			if err != nil {
-				t.Fatal(err)
+				panic(err)
 			}
 			m[pair.X] = s
 			wg.Done()
