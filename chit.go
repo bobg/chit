@@ -38,6 +38,11 @@ func New[T any](ctx context.Context, writer func(context.Context, chan<- T) erro
 
 // Read reads the next item from the iterator.
 func (it *Iter[T]) Read() (T, bool, error) {
+	if true {
+		x, ok := <-it.ch
+		return x, ok, nil
+	}
+
 	select {
 	case x, ok := <-it.ch:
 		// xxx call it.cancel()
@@ -57,6 +62,11 @@ func (it *Iter[T]) Cancel() {
 }
 
 func chwrite[T any](ctx context.Context, ch chan<- T, x T) error {
+	if true {
+		ch <- x
+		return nil
+	}
+
 	select {
 	case ch <- x:
 		return nil

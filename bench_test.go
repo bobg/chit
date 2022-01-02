@@ -2,6 +2,7 @@ package chit
 
 import (
 	"context"
+	"sync"
 	"testing"
 )
 
@@ -44,26 +45,37 @@ type iterIF[T any] interface {
 
 // generates ints
 type intIter struct {
+	mu               sync.Mutex
 	val, next, delta int
 }
 
 func (it *intIter) Next() bool {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	it.val = it.next
 	it.next += it.delta
 	return true
 }
 
 func (it *intIter) Val() int {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	return it.val
 }
 
 // produces the first N items
 type firstNIter[T any] struct {
+	mu  sync.Mutex
 	inp iterIF[T]
 	n   int
 }
 
 func (it *firstNIter[T]) Next() bool {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	if it.n <= 0 {
 		return false
 	}
@@ -77,12 +89,16 @@ func (it *firstNIter[T]) Val() T {
 
 // filters according to a predicate
 type filterIter[T any] struct {
+	mu    sync.Mutex
 	inp   iterIF[T]
 	f     func(T) bool
 	latch *T
 }
 
 func (it *filterIter[T]) Next() bool {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	for it.inp.Next() {
 		val := it.inp.Val()
 		if it.f(val) {
@@ -94,6 +110,9 @@ func (it *filterIter[T]) Next() bool {
 }
 
 func (it *filterIter[T]) Val() T {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	return *it.latch
 }
 
@@ -113,6 +132,7 @@ func (it *mapIter[T, U]) Val() U {
 
 // accumulates
 type accumIter[T any] struct {
+	mu     sync.Mutex
 	inp    iterIF[T]
 	f      func(T, T) T
 	latest *T
@@ -123,6 +143,9 @@ func (it *accumIter[T]) Next() bool {
 }
 
 func (it *accumIter[T]) Val() T {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	var val T
 	if it.latest == nil {
 		val = it.inp.Val()
@@ -135,6 +158,7 @@ func (it *accumIter[T]) Val() T {
 
 // produces the last N items
 type lastNIter[T any] struct {
+	mu     sync.Mutex
 	inp    iterIF[T]
 	n      int
 	filled bool
@@ -143,6 +167,9 @@ type lastNIter[T any] struct {
 }
 
 func (it *lastNIter[T]) Next() bool {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	if !it.filled {
 		var (
 			start int
@@ -172,6 +199,9 @@ func (it *lastNIter[T]) Next() bool {
 }
 
 func (it *lastNIter[T]) Val() T {
+	it.mu.Lock()
+	defer it.mu.Unlock()
+
 	return it.val
 }
 

@@ -68,6 +68,17 @@ func Group[T any, U comparable](ctx context.Context, inp *Iter[T], partition fun
 
 				iter := New(ctx, func(ctx context.Context, c chan<- T) error {
 					for {
+						if true {
+							x, ok := <-pipe
+							if !ok {
+								return nil
+							}
+							err = chwrite(ctx, c, x)
+							if err != nil {
+								return err
+							}
+						}
+
 						select {
 						case x, ok := <-pipe:
 							if !ok {
