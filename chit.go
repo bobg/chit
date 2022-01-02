@@ -17,22 +17,17 @@ type Iter[T any] struct {
 }
 
 // New[T] creates a new Iter[T].
+//
 // The writer function is invoked once
 // (in a goroutine),
-// and must supply all of the iterator's elements on the given channel.
-//
-// The writer function should return early,
-// with an error,
-// if its context is canceled,
-// without blocking on a channel send.
-// This is done with a Go select statement,
-// or (for convenience) the Send function in this package.
-//
-// The writer function must not close the channel;
-// this will happen automatically when the function exits.
+// and must supply all of the iterator's elements
+// by repeated calls to the send function
+// (which, buffering aside, will block until a downstream reader requires the value being sent).
+// If the send function returns an error,
+// the writer function should return early with that error.
 //
 // Any error returned by the writer function will be placed in the Err field of the resulting iterator.
-func New[T any](ctx context.Context, writer func(context.Context, chan<- T) error) *Iter[T] {
+func New[T any](ctx context.Context, writer func(send func(T) error) error) *Iter[T] {
 	ctx, cancel := context.WithCancel(ctx)
 
 	// Benchmark results:
@@ -48,7 +43,14 @@ func New[T any](ctx context.Context, writer func(context.Context, chan<- T) erro
 		cancel: cancel,
 	}
 	go func() {
-		iter.Err = writer(ctx, ch)
+		iter.Err = writer(func(x T) error {
+			select {
+			case ch <- x:
+				return nil
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		})
 		close(ch)
 	}()
 	return iter

@@ -4,10 +4,10 @@ import "context"
 
 // FromMap creates a channel iterator over a map.
 func FromMap[K comparable, V any](ctx context.Context, inp map[K]V) *Iter[Pair[K, V]] {
-	return New(ctx, func(ctx context.Context, ch chan<- Pair[K, V]) error {
+	return New(ctx, func(send func(Pair[K, V]) error) error {
 		for k, v := range inp {
 			k, v := k, v // Go loop-var pitfall
-			err := Send(ctx, ch, Pair[K, V]{X: k, Y: v})
+			err := send(Pair[K, V]{X: k, Y: v})
 			if err != nil {
 				return err
 			}

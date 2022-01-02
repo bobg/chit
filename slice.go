@@ -4,9 +4,9 @@ import "context"
 
 // FromSlice creates a channel iterator over a slice.
 func FromSlice[T any](ctx context.Context, inp []T) *Iter[T] {
-	return New(ctx, func(ctx context.Context, ch chan<- T) error {
+	return New(ctx, func(send func(T) error) error {
 		for _, x := range inp {
-			err := Send(ctx, ch, x)
+			err := send(x)
 			if err != nil {
 				return err
 			}

@@ -5,7 +5,7 @@ import "context"
 // Filter filters the elements of an iterator according to a predicate function.
 // Only the elements in the input iterator producing a true value appear in the output iterator.
 func Filter[T any](ctx context.Context, inp *Iter[T], f func(T) (bool, error)) *Iter[T] {
-	return New(ctx, func(ctx context.Context, ch chan<- T) error {
+	return New(ctx, func(send func(T) error) error {
 		for {
 			x, ok, err := inp.Next()
 			if err != nil {
@@ -21,7 +21,7 @@ func Filter[T any](ctx context.Context, inp *Iter[T], f func(T) (bool, error)) *
 			if !ok {
 				continue
 			}
-			err = Send(ctx, ch, x)
+			err = send(x)
 			if err != nil {
 				return err
 			}

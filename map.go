@@ -5,7 +5,7 @@ import "context"
 // Map transforms a sequence of T-type elements into a sequence of U-type elements
 // by applying a function to each one.
 func Map[T, U any](ctx context.Context, inp *Iter[T], f func(T) (U, error)) *Iter[U] {
-	return New(ctx, func(ctx context.Context, ch chan<- U) error {
+	return New(ctx, func(send func(U) error) error {
 		for {
 			x, ok, err := inp.Next()
 			if err != nil {
@@ -18,7 +18,7 @@ func Map[T, U any](ctx context.Context, inp *Iter[T], f func(T) (U, error)) *Ite
 			if err != nil {
 				return err
 			}
-			err = Send(ctx, ch, y)
+			err = send(y)
 			if err != nil {
 				return err
 			}

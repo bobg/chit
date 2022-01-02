@@ -24,7 +24,7 @@ func Dup[T any](ctx context.Context, inp *Iter[T], n int) []*Iter[T] {
 	for idx := 0; idx < n; idx++ {
 		idx := idx // Go loop-var pitfall
 		var iter *Iter[T]
-		iter = New(ctx, func(ctx context.Context, ch chan<- T) error {
+		iter = New(ctx, func(send func(T) error) error {
 			for {
 				x, ok, err := func() (T, bool, error) {
 					mu.Lock()
@@ -75,7 +75,7 @@ func Dup[T any](ctx context.Context, inp *Iter[T], n int) []*Iter[T] {
 				if !ok {
 					return nil
 				}
-				err = Send(ctx, ch, x)
+				err = send(x)
 				if err != nil {
 					return err
 				}

@@ -20,7 +20,7 @@ type QueryerContext interface {
 // The values produced by the iterator will be instances of that struct type,
 // with fields populated by the queried values.
 func SQL[T any](ctx context.Context, db QueryerContext, query string, args ...any) *Iter[T] {
-	return New(ctx, func(ctx context.Context, ch chan<- T) error {
+	return New(ctx, func(send func(T) error) error {
 		var t T
 		tt := reflect.TypeOf(t)
 		if tt.Kind() != reflect.Struct {
@@ -48,7 +48,7 @@ func SQL[T any](ctx context.Context, db QueryerContext, query string, args ...an
 			if err != nil {
 				return err
 			}
-			err = Send(ctx, ch, row)
+			err = send(row)
 			if err != nil {
 				return err
 			}

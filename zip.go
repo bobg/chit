@@ -6,7 +6,7 @@ import "context"
 // If one input iterator ends before the other,
 // Zip produces zero values of the appropriate type in constructing pairs.
 func Zip[T, U any](ctx context.Context, t *Iter[T], u *Iter[U]) *Iter[Pair[T, U]] {
-	return New(ctx, func(ctx context.Context, ch chan<- Pair[T, U]) error {
+	return New(ctx, func(send func(Pair[T, U]) error) error {
 		okx, oky := true, true
 
 		for {
@@ -40,7 +40,7 @@ func Zip[T, U any](ctx context.Context, t *Iter[T], u *Iter[U]) *Iter[Pair[T, U]
 				return nil
 			}
 
-			err := Send(ctx, ch, Pair[T, U]{X: x, Y: y})
+			err := send(Pair[T, U]{X: x, Y: y})
 			if err != nil {
 				return err
 			}

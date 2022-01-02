@@ -6,7 +6,7 @@ import "context"
 // (or all of the input, if there are fewer than n elements).
 // Excess elements in the input are discarded by calling inp.Cancel.
 func FirstN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
-	return New(ctx, func(ctx context.Context, ch chan<- T) error {
+	return New(ctx, func(send func(T) error) error {
 		defer inp.Cancel()
 
 		for i := 0; i < n; i++ {
@@ -17,7 +17,7 @@ func FirstN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
 			if !ok {
 				return nil
 			}
-			err = Send(ctx, ch, x)
+			err = send(x)
 			if err != nil {
 				return err
 			}
@@ -31,7 +31,7 @@ func FirstN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
 // If the input contains n or fewer elements,
 // the output iterator will be empty.
 func SkipN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
-	return New(ctx, func(ctx context.Context, ch chan<- T) error {
+	return New(ctx, func(send func(T) error) error {
 		for i := 0; i < n; i++ {
 			_, ok, err := inp.Next()
 			if err != nil {
@@ -49,7 +49,7 @@ func SkipN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
 			if !ok {
 				return nil
 			}
-			err = Send(ctx, ch, x)
+			err = send(x)
 			if err != nil {
 				return err
 			}
@@ -63,7 +63,7 @@ func SkipN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
 // There is no guarantee that any elements will ever be produced:
 // the input iterator may be infinite!
 func LastN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
-	return New(ctx, func(ctx context.Context, ch chan<- T) error {
+	return New(ctx, func(send func(T) error) error {
 		var (
 			// Circular buffer.
 			buf   = make([]T, 0, n)
@@ -76,13 +76,13 @@ func LastN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
 			}
 			if !ok {
 				for i := start; i < len(buf); i++ {
-					err = Send(ctx, ch, buf[i])
+					err = send(buf[i])
 					if err != nil {
 						return err
 					}
 				}
 				for i := 0; i < start; i++ {
-					err = Send(ctx, ch, buf[i])
+					err = send(buf[i])
 					if err != nil {
 						return err
 					}

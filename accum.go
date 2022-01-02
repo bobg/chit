@@ -10,7 +10,7 @@ import "context"
 // and
 //   out[i+1] == f(out[i], inp[i+1])
 func Accum[T any](ctx context.Context, inp *Iter[T], f func(T, T) (T, error)) *Iter[T] {
-	return New(ctx, func(ctx context.Context, ch chan<- T) error {
+	return New(ctx, func(send func(T) error) error {
 		var (
 			last  T
 			first = true
@@ -32,7 +32,7 @@ func Accum[T any](ctx context.Context, inp *Iter[T], f func(T, T) (T, error)) *I
 					return err
 				}
 			}
-			err = Send(ctx, ch, last)
+			err = send(last)
 			if err != nil {
 				return err
 			}
