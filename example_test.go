@@ -1,4 +1,4 @@
-package chit
+package chit_test
 
 import (
 	"context"
@@ -20,10 +20,8 @@ func ExampleSQL() {
 	}
 	const query = "SELECT name, ssn FROM employees WHERE salary >= 60000"
 
-	iter, err := chit.SQL[rowtype](ctx, db, query)
-	if err != nil {
-		log.Fatal(err)
-	}
+	iter := chit.SQL[rowtype](ctx, db, query)
+
 	for {
 		x, ok, err := iter.Read()
 		if err != nil {

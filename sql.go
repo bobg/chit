@@ -17,15 +17,17 @@ type QueryerContext interface {
 // T must be a struct type whose fields have the same types,
 // in the same order,
 // as the values being queried.
-func SQL[T any](ctx context.Context, db QueryerContext, query string, args ...any) (*Iter[T], error) {
-	var t T
-	tt := reflect.TypeOf(t)
-	if tt.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("type parameter to SQL has %s kind but must be struct", tt.Kind())
-	}
-	nfields := tt.NumField()
-
+// The values produced by the iterator will be instances of that struct type,
+// with fields populated by the queried values.
+func SQL[T any](ctx context.Context, db QueryerContext, query string, args ...any) *Iter[T] {
 	return New(ctx, func(ctx context.Context, ch chan<- T) error {
+		var t T
+		tt := reflect.TypeOf(t)
+		if tt.Kind() != reflect.Struct {
+			return fmt.Errorf("type parameter to SQL has %s kind but must be struct", tt.Kind())
+		}
+		nfields := tt.NumField()
+
 		rows, err := db.QueryContext(ctx, query, args...)
 		if err != nil {
 			return err
@@ -52,5 +54,5 @@ func SQL[T any](ctx context.Context, db QueryerContext, query string, args ...an
 			}
 		}
 		return rows.Err()
-	}), nil
+	})
 }
