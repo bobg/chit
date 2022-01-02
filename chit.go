@@ -23,7 +23,14 @@ type Iter[T any] struct {
 // this will happen automatically when the function exits.
 func New[T any](ctx context.Context, writer func(context.Context, chan<- T) error) *Iter[T] {
 	ctx, cancel := context.WithCancel(ctx)
-	ch := make(chan T, 1) // Benchmarks show a 20% speed improvement when the channel is buffered vs. unbuffered.
+
+	// Benchmark results:
+	//   No channel buffering: 1.00 (baseline)
+	//   Buffer size 1:        0.81
+	//   Buffer size 32:       0.36
+	//   Abstract iterators:   0.08 (vs. chit-style channels and goroutines)
+
+	ch := make(chan T, 32)
 	iter := &Iter[T]{
 		ch:     ch,
 		ctx:    ctx,
