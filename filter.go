@@ -28,3 +28,24 @@ func Filter[T any](ctx context.Context, inp *Iter[T], f func(T) (bool, error)) *
 		}
 	})
 }
+
+// SkipUntil skips the inital elements of the input
+// until calling the given predicate on an element returns true;
+// then it copies that and the remaining elements to the output.
+// The predicate is not called again after the first time it returns true.
+func SkipUntil[T any](ctx context.Context, inp *Iter[T], f func(T) (bool, error)) *Iter[T] {
+	skipping := true
+	return Filter(ctx, inp, func(t T) (bool, error) {
+		if !skipping {
+			return true, nil
+		}
+		ok, err := f(t)
+		if err != nil {
+			return false, err
+		}
+		if ok {
+			skipping = false
+		}
+		return !skipping, nil
+	})
+}

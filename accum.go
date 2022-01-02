@@ -3,9 +3,12 @@ package chit
 import "context"
 
 // Accum accumulates the result of repeatedly applying a function to the elements of an iterator.
-// If inp[i] is the ith element of the input and out[i] is the ith element of the output,
-// then out[0] == inp[0],
-// and out[i+1] = f(out[i], inp[i+1])
+// If inp[i] is the ith element of the input
+// and out[i] is the ith element of the output,
+// then:
+//   out[0] == inp[0]
+// and
+//   out[i+1] == f(out[i], inp[i+1])
 func Accum[T any](ctx context.Context, inp *Iter[T], f func(T, T) (T, error)) *Iter[T] {
 	return New(ctx, func(ctx context.Context, ch chan<- T) error {
 		var (

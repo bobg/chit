@@ -45,8 +45,13 @@ type Iter[T any] struct {
 func Accum[T any](ctx context.Context, inp *Iter[T], f func(T, T) (T, error)) *Iter[T]
     Accum accumulates the result of repeatedly applying a function to the
     elements of an iterator. If inp[i] is the ith element of the input and
-    out[i] is the ith element of the output, then out[0] == inp[0], and out[i+1]
-    = f(out[i], inp[i+1])
+    out[i] is the ith element of the output, then:
+
+        out[0] == inp[0]
+
+    and
+
+        out[i+1] == f(out[i], inp[i+1])
 
 func Concat[T any](ctx context.Context, inps ...*Iter[T]) *Iter[T]
     Concat[T] takes a sequence of iterators and produces an iterator over all
@@ -151,6 +156,17 @@ func SQL[T any](ctx context.Context, db QueryerContext, query string, args ...an
     same order, as the values being queried. The values produced by the iterator
     will be instances of that struct type, with fields populated by the queried
     values.
+
+func SkipN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T]
+    SkipN produces an iterator containing all but the first n elements of the
+    input. If the input contains n or fewer elements, the output iterator will
+    be empty.
+
+func SkipUntil[T any](ctx context.Context, inp *Iter[T], f func(T) (bool, error)) *Iter[T]
+    SkipUntil skips the inital elements of the input until calling the given
+    predicate on an element returns true; then it copies that and the remaining
+    elements to the output. The predicate is not called again after the first
+    time it returns true.
 
 func Zip[T, U any](ctx context.Context, t *Iter[T], u *Iter[U]) *Iter[Pair[T, U]]
     Zip takes two iterators and produces a new iterator containing pairs of

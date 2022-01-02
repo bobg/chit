@@ -27,6 +27,36 @@ func FirstN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
 	})
 }
 
+// SkipN produces an iterator containing all but the first n elements of the input.
+// If the input contains n or fewer elements,
+// the output iterator will be empty.
+func SkipN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
+	return New(ctx, func(ctx context.Context, ch chan<- T) error {
+		for i := 0; i < n; i++ {
+			_, ok, err := inp.Next()
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return nil
+			}
+		}
+		for {
+			x, ok, err := inp.Next()
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return nil
+			}
+			err = Send(ctx, ch, x)
+			if err != nil {
+				return err
+			}
+		}
+	})
+}
+
 // LastN produces an iterator containing the last n elements of the input
 // (or all of the input, if there are fewer than n elements).
 // This requires buffering up to n elements.
