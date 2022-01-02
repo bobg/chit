@@ -75,13 +75,3 @@ func (it *Iter[T]) Next() (T, bool, error) {
 func (it *Iter[T]) Cancel() {
 	it.cancel()
 }
-
-// Send sends a value on a channel but returns early (with an error) if the context is canceled before the value can be sent.
-func Send[T any](ctx context.Context, ch chan<- T, x T) error {
-	select {
-	case ch <- x:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}

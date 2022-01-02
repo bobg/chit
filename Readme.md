@@ -60,10 +60,6 @@ Chit defines functions for operating on channels as generic iterators.
 
 FUNCTIONS
 
-func Send[T any](ctx context.Context, ch chan<- T, x T) error
-    Send sends a value on a channel but returns early (with an error) if the
-    context is canceled before the value can be sent.
-
 func ToMap[K comparable, V any](ctx context.Context, inp *Iter[Pair[K, V]]) (map[K]V, error)
     ToMap consumes all the elements of an iterator over key-value pairs and
     returns them as a map. All but the last of any pairs with duplicate keys are
@@ -148,9 +144,10 @@ func New[T any](ctx context.Context, writer func(send func(T) error) error) *Ite
     New[T] creates a new Iter[T].
 
     The writer function is invoked once (in a goroutine), and must supply all of
-    the iterator's elements by repeated calls to the send function. If the send
-    function returns an error, the writer function should return early with that
-    error.
+    the iterator's elements by repeated calls to the send function (which,
+    buffering aside, will block until a downstream reader requires the value
+    being sent). If the send function returns an error, the writer function
+    should return early with that error.
 
     Any error returned by the writer function will be placed in the Err field of
     the resulting iterator.
