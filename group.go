@@ -18,7 +18,7 @@ import "context"
 //     wg     sync.WaitGroup
 //   )
 //   for {
-//     pair, ok, err := groups.Read()
+//     pair, ok, err := groups.Next()
 //     // ...check err...
 //     if !ok {
 //       break
@@ -28,7 +28,7 @@ import "context"
 //       defer wg.Done()
 //       partitionKey, partitionItems := pair.X, pair.Y
 //       for {
-//         item, ok, err := partitionItems.Read()
+//         item, ok, err := partitionItems.Next()
 //         // ...check err...
 //         if !ok {
 //           break
@@ -49,7 +49,7 @@ func Group[T any, U comparable](ctx context.Context, inp *Iter[T], partition fun
 		}()
 
 		for {
-			x, ok, err := inp.Read()
+			x, ok, err := inp.Next()
 			if err != nil {
 				return err
 			}
@@ -73,7 +73,7 @@ func Group[T any, U comparable](ctx context.Context, inp *Iter[T], partition fun
 							if !ok {
 								return nil
 							}
-							err = chwrite(ctx, c, x)
+							err = Send(ctx, c, x)
 							if err != nil {
 								return err
 							}
@@ -83,14 +83,14 @@ func Group[T any, U comparable](ctx context.Context, inp *Iter[T], partition fun
 						}
 					}
 				})
-				err = chwrite(ctx, ch, Pair[U, *Iter[T]]{X: p, Y: iter})
+				err = Send(ctx, ch, Pair[U, *Iter[T]]{X: p, Y: iter})
 				if err != nil {
 					return err
 				}
 				c = pipe
 			}
 
-			err = chwrite(ctx, c, x)
+			err = Send(ctx, c, x)
 			if err != nil {
 				return err
 			}

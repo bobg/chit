@@ -13,7 +13,7 @@ func Gen[T any](ctx context.Context, f func() (T, bool, error)) *Iter[T] {
 			if !ok {
 				return nil
 			}
-			err = chwrite(ctx, ch, x)
+			err = Send(ctx, ch, x)
 			if err != nil {
 				return err
 			}

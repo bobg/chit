@@ -23,7 +23,7 @@ func ExampleSQL() {
 	iter := chit.SQL[rowtype](ctx, db, query)
 
 	for {
-		x, ok, err := iter.Read()
+		x, ok, err := iter.Next()
 		if err != nil {
 			log.Fatal(err)
 		}

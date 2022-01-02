@@ -8,7 +8,7 @@ import "context"
 // Create an Iter[T] with New[T].
 type Iter[T any] struct {
 	// Err contains any error that might have closed the channel prematurely.
-	// Callers should read it only after a call to Iter.Read returns a false "ok" value.
+	// Callers should read it only after a call to Iter.Next returns a false "ok" value.
 	Err error
 
 	ch     <-chan T
@@ -36,8 +36,8 @@ func New[T any](ctx context.Context, writer func(context.Context, chan<- T) erro
 	return iter
 }
 
-// Read reads the next item from the iterator.
-func (it *Iter[T]) Read() (T, bool, error) {
+// Next reads the next item from the iterator.
+func (it *Iter[T]) Next() (T, bool, error) {
 	select {
 	case x, ok := <-it.ch:
 		// xxx call it.cancel()
@@ -51,12 +51,13 @@ func (it *Iter[T]) Read() (T, bool, error) {
 
 // Cancel cancels the context in the iterator.
 // This normally causes the iterator's "writer" function to terminate early,
-// closing the iterator's underlying channel and causing Read calls to return context.Canceled.
+// closing the iterator's underlying channel and causing Next calls to return context.Canceled.
 func (it *Iter[T]) Cancel() {
 	it.cancel()
 }
 
-func chwrite[T any](ctx context.Context, ch chan<- T, x T) error {
+// Send sends a value on a channel but returns early (with an error) if the context is canceled before the value can be sent.
+func Send[T any](ctx context.Context, ch chan<- T, x T) error {
 	select {
 	case ch <- x:
 		return nil

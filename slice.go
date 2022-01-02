@@ -6,7 +6,7 @@ import "context"
 func FromSlice[T any](ctx context.Context, inp []T) *Iter[T] {
 	return New(ctx, func(ctx context.Context, ch chan<- T) error {
 		for _, x := range inp {
-			err := chwrite(ctx, ch, x)
+			err := Send(ctx, ch, x)
 			if err != nil {
 				return err
 			}
@@ -21,7 +21,7 @@ func FromSlice[T any](ctx context.Context, inp []T) *Iter[T] {
 func ToSlice[T any](ctx context.Context, inp *Iter[T]) ([]T, error) {
 	var result []T
 	for {
-		x, ok, err := inp.Read()
+		x, ok, err := inp.Next()
 		if err != nil {
 			return nil, err
 		}

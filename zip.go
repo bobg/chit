@@ -16,7 +16,7 @@ func Zip[T, U any](ctx context.Context, t *Iter[T], u *Iter[U]) *Iter[Pair[T, U]
 			)
 
 			if okx {
-				xx, ok, err := t.Read()
+				xx, ok, err := t.Next()
 				if err != nil {
 					return err
 				}
@@ -26,7 +26,7 @@ func Zip[T, U any](ctx context.Context, t *Iter[T], u *Iter[U]) *Iter[Pair[T, U]
 				okx = ok
 			}
 			if oky {
-				yy, ok, err := u.Read()
+				yy, ok, err := u.Next()
 				if err != nil {
 					return err
 				}
@@ -40,7 +40,7 @@ func Zip[T, U any](ctx context.Context, t *Iter[T], u *Iter[U]) *Iter[Pair[T, U]
 				return nil
 			}
 
-			err := chwrite(ctx, ch, Pair[T, U]{X: x, Y: y})
+			err := Send(ctx, ch, Pair[T, U]{X: x, Y: y})
 			if err != nil {
 				return err
 			}

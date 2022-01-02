@@ -7,7 +7,7 @@ import "context"
 func Filter[T any](ctx context.Context, inp *Iter[T], f func(T) (bool, error)) *Iter[T] {
 	return New(ctx, func(ctx context.Context, ch chan<- T) error {
 		for {
-			x, ok, err := inp.Read()
+			x, ok, err := inp.Next()
 			if err != nil {
 				return err
 			}
@@ -21,7 +21,7 @@ func Filter[T any](ctx context.Context, inp *Iter[T], f func(T) (bool, error)) *
 			if !ok {
 				continue
 			}
-			err = chwrite(ctx, ch, x)
+			err = Send(ctx, ch, x)
 			if err != nil {
 				return err
 			}

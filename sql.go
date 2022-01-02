@@ -48,7 +48,7 @@ func SQL[T any](ctx context.Context, db QueryerContext, query string, args ...an
 			if err != nil {
 				return err
 			}
-			err = chwrite(ctx, ch, row)
+			err = Send(ctx, ch, row)
 			if err != nil {
 				return err
 			}

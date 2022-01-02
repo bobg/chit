@@ -16,7 +16,7 @@ func BenchmarkChit(b *testing.B) {
 			sums      = Accum(ctx, squares, func(x, y int) (int, error) { return x + y, nil })
 			sum       = LastN(ctx, sums, 1)
 		)
-		_, ok, err := sum.Read()
+		_, ok, err := sum.Next()
 		if err != nil {
 			b.Fatal(err)
 		}

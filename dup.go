@@ -36,7 +36,7 @@ func Dup[T any](ctx context.Context, inp *Iter[T], n int) []*Iter[T] {
 					}
 
 					for offsets[idx] >= bufoffset+len(buf) {
-						x, ok, err := inp.Read()
+						x, ok, err := inp.Next()
 						if err != nil {
 							// xxx cancel other iters?
 							// for j := 0; j < n; j++ {
@@ -75,7 +75,7 @@ func Dup[T any](ctx context.Context, inp *Iter[T], n int) []*Iter[T] {
 				if !ok {
 					return nil
 				}
-				err = chwrite(ctx, ch, x)
+				err = Send(ctx, ch, x)
 				if err != nil {
 					return err
 				}

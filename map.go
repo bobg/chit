@@ -7,7 +7,7 @@ import "context"
 func Map[T, U any](ctx context.Context, inp *Iter[T], f func(T) (U, error)) *Iter[U] {
 	return New(ctx, func(ctx context.Context, ch chan<- U) error {
 		for {
-			x, ok, err := inp.Read()
+			x, ok, err := inp.Next()
 			if err != nil {
 				return err
 			}
@@ -18,7 +18,7 @@ func Map[T, U any](ctx context.Context, inp *Iter[T], f func(T) (U, error)) *Ite
 			if err != nil {
 				return err
 			}
-			err = chwrite(ctx, ch, y)
+			err = Send(ctx, ch, y)
 			if err != nil {
 				return err
 			}

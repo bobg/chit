@@ -18,7 +18,7 @@ func TestGroup(t *testing.T) {
 	}
 	var wg sync.WaitGroup
 	for {
-		pair, ok, err := groups.Read()
+		pair, ok, err := groups.Next()
 		if err != nil {
 			t.Fatal(err)
 		}

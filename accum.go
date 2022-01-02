@@ -13,7 +13,7 @@ func Accum[T any](ctx context.Context, inp *Iter[T], f func(T, T) (T, error)) *I
 			first = true
 		)
 		for {
-			x, ok, err := inp.Read()
+			x, ok, err := inp.Next()
 			if err != nil {
 				return err
 			}
@@ -29,7 +29,7 @@ func Accum[T any](ctx context.Context, inp *Iter[T], f func(T, T) (T, error)) *I
 					return err
 				}
 			}
-			err = chwrite(ctx, ch, last)
+			err = Send(ctx, ch, last)
 			if err != nil {
 				return err
 			}

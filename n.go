@@ -10,14 +10,14 @@ func FirstN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
 		defer inp.Cancel()
 
 		for i := 0; i < n; i++ {
-			x, ok, err := inp.Read()
+			x, ok, err := inp.Next()
 			if err != nil {
 				return err
 			}
 			if !ok {
 				return nil
 			}
-			err = chwrite(ctx, ch, x)
+			err = Send(ctx, ch, x)
 			if err != nil {
 				return err
 			}
@@ -40,19 +40,19 @@ func LastN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T] {
 			start = 0
 		)
 		for {
-			x, ok, err := inp.Read()
+			x, ok, err := inp.Next()
 			if err != nil {
 				return err
 			}
 			if !ok {
 				for i := start; i < len(buf); i++ {
-					err = chwrite(ctx, ch, buf[i])
+					err = Send(ctx, ch, buf[i])
 					if err != nil {
 						return err
 					}
 				}
 				for i := 0; i < start; i++ {
-					err = chwrite(ctx, ch, buf[i])
+					err = Send(ctx, ch, buf[i])
 					if err != nil {
 						return err
 					}

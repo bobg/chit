@@ -7,7 +7,7 @@ func FromMap[K comparable, V any](ctx context.Context, inp map[K]V) *Iter[Pair[K
 	return New(ctx, func(ctx context.Context, ch chan<- Pair[K, V]) error {
 		for k, v := range inp {
 			k, v := k, v // Go loop-var pitfall
-			err := chwrite(ctx, ch, Pair[K, V]{X: k, Y: v})
+			err := Send(ctx, ch, Pair[K, V]{X: k, Y: v})
 			if err != nil {
 				return err
 			}
@@ -20,7 +20,7 @@ func FromMap[K comparable, V any](ctx context.Context, inp map[K]V) *Iter[Pair[K
 func ToMap[K comparable, V any](ctx context.Context, inp *Iter[Pair[K, V]]) (map[K]V, error) {
 	result := make(map[K]V)
 	for {
-		pair, ok, err := inp.Read()
+		pair, ok, err := inp.Next()
 		if err != nil {
 			return nil, err
 		}
