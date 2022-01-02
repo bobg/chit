@@ -17,10 +17,21 @@ type Iter[T any] struct {
 }
 
 // New[T] creates a new Iter[T].
-// The writer function is invoked once in a goroutine,
+// The writer function is invoked once
+// (in a goroutine),
 // and must supply all of the iterator's elements on the given channel.
+//
+// The writer function should return early,
+// with an error,
+// if its context is canceled,
+// without blocking on a channel send.
+// This is done with a Go select statement,
+// or (for convenience) the Send function in this package.
+//
 // The writer function must not close the channel;
 // this will happen automatically when the function exits.
+//
+// Any error returned by the writer function will be placed in the Err field of the resulting iterator.
 func New[T any](ctx context.Context, writer func(context.Context, chan<- T) error) *Iter[T] {
 	ctx, cancel := context.WithCancel(ctx)
 

@@ -126,7 +126,7 @@ func Group[T any, U comparable](ctx context.Context, inp *Iter[T], partition fun
         wg.Wait()
 
 func Ints(ctx context.Context, start, delta int) *Iter[int]
-    Ints produces an infinite iterator of integers, starting and start and
+    Ints produces an infinite iterator of integers, starting at start and
     incrementing by delta.
 
 func LastN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T]
@@ -140,10 +140,19 @@ func Map[T, U any](ctx context.Context, inp *Iter[T], f func(T) (U, error)) *Ite
     elements by applying a function to each one.
 
 func New[T any](ctx context.Context, writer func(context.Context, chan<- T) error) *Iter[T]
-    New[T] creates a new Iter[T]. The writer function is invoked once in a
-    goroutine, and must supply all of the iterator's elements on the given
-    channel. The writer function must not close the channel; this will happen
+    New[T] creates a new Iter[T]. The writer function is invoked once (in a
+    goroutine), and must supply all of the iterator's elements on the given
+    channel.
+
+    The writer function should return early, with an error, if its context is
+    canceled, without blocking on a channel send. This is done with a Go select
+    statement, or (for convenience) the Send function in this package.
+
+    The writer function must not close the channel; this will happen
     automatically when the function exits.
+
+    Any error returned by the writer function will be placed in the Err field of
+    the resulting iterator.
 
 func Repeat[T any](ctx context.Context, val T) *Iter[T]
     Repeat produces an infinite iterator of the given element, over and over.

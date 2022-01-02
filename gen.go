@@ -22,7 +22,7 @@ func Gen[T any](ctx context.Context, f func() (T, bool, error)) *Iter[T] {
 }
 
 // Ints produces an infinite iterator of integers,
-// starting and start and incrementing by delta.
+// starting at start and incrementing by delta.
 func Ints(ctx context.Context, start, delta int) *Iter[int] {
 	n := start
 	return Gen(ctx, func() (int, bool, error) {
