@@ -72,7 +72,7 @@ func Group[T any, K comparable](ctx context.Context, inp *Iter[T], f func(T) (K,
 
 			ch := make(chan T, 32)
 			m[k] = ch
-			iter := Chan(ctx, ch)
+			iter := FromChan(ctx, ch)
 			err = outerSend(Pair[K, *Iter[T]]{X: k, Y: iter})
 			if err != nil {
 				return err
