@@ -44,12 +44,7 @@ func New[T any](ctx context.Context, writer func(send func(T) error) error) *Ite
 	}
 	go func() {
 		iter.Err = writer(func(x T) error {
-			select {
-			case ch <- x:
-				return nil
-			case <-ctx.Done():
-				return ctx.Err()
-			}
+			return chsend(ctx, ch, x)
 		})
 		close(ch)
 	}()
@@ -74,4 +69,13 @@ func (it *Iter[T]) Next() (T, bool, error) {
 // closing the iterator's underlying channel and causing Next calls to return context.Canceled.
 func (it *Iter[T]) Cancel() {
 	it.cancel()
+}
+
+func chsend[T any](ctx context.Context, ch chan<- T, x T) error {
+	select {
+	case ch <- x:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }

@@ -1,5 +1,7 @@
 package chit
 
+import "context"
+
 // Chan creates an iterator reading from a channel.
 func Chan[T any](ctx context.Context, inp <-chan T) *Iter[T] {
 	return New(ctx, func(send func(T) error) error {
