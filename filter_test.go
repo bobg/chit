@@ -18,3 +18,17 @@ func TestFilter(t *testing.T) {
 		t.Errorf("got %v, [2 4 6]", got)
 	}
 }
+
+func TestSkipUntil(t *testing.T) {
+	ctx := context.Background()
+	ints := Ints(ctx, 1, 1)
+	first10 := FirstN(ctx, ints, 10)
+	latter := SkipUntil(ctx, first10, func(x int) (bool, error) { return x > 7, nil })
+	got, err := ToSlice(ctx, latter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(got, []int{8, 9, 10}) {
+		t.Errorf("got %v, want [8 9 10]", got)
+	}
+}

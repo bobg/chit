@@ -43,19 +43,22 @@ func New[T any](ctx context.Context, writer func(send func(T) error) error) *Ite
 		cancel: cancel,
 	}
 	go func() {
-		iter.Err = writer(func(x T) error {
-			return chsend(ctx, ch, x)
-		})
+		send := func(x T) error { return chsend(ctx, ch, x) }
+		iter.Err = writer(send)
 		close(ch)
 	}()
 	return iter
 }
 
 // Next reads the next item from the iterator.
+// The boolean result is true until the end of the iteration is reached,
+// then it's false.
 func (it *Iter[T]) Next() (T, bool, error) {
 	select {
 	case x, ok := <-it.ch:
-		// xxx call it.cancel()
+		if !ok {
+			it.cancel()
+		}
 		return x, ok, nil
 	case <-it.ctx.Done():
 		var x T
