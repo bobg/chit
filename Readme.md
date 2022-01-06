@@ -60,6 +60,12 @@ Chit defines functions for operating on channels as generic iterators.
 
 FUNCTIONS
 
+func ToChan[T any](ctx context.Context, iter *Iter[T], errptr *error) <-chan T
+    ToChan copies the members of an input iterator to a new Go channel. If
+    errptr is non-nil, any error encountered reading from the iterator or
+    writing to the channel is placed there and can be read after the end of the
+    channel is reached.
+
 func ToMap[K comparable, V any](ctx context.Context, inp *Iter[Pair[K, V]]) (map[K]V, error)
     ToMap consumes all the elements of an iterator over key-value pairs and
     returns them as a map. All but the last of any pairs with duplicate keys are
@@ -94,9 +100,6 @@ func Accum[T any](ctx context.Context, inp *Iter[T], f func(T, T) (T, error)) *I
 
         out[i+1] == f(out[i], inp[i+1])
 
-func Chan[T any](ctx context.Context, inp <-chan T) *Iter[T]
-    Chan creates an iterator reading from a channel.
-
 func Concat[T any](ctx context.Context, inps ...*Iter[T]) *Iter[T]
     Concat[T] takes a sequence of iterators and produces an iterator over all
     the elements of the input iterators, in sequence.
@@ -118,6 +121,9 @@ func FirstN[T any](ctx context.Context, inp *Iter[T], n int) *Iter[T]
     FirstN produces an iterator containing the first n elements of the input (or
     all of the input, if there are fewer than n elements). Excess elements in
     the input are discarded by calling inp.Cancel.
+
+func FromChan[T any](ctx context.Context, inp <-chan T) *Iter[T]
+    FromChan creates an iterator reading from a channel.
 
 func FromMap[K comparable, V any](ctx context.Context, inp map[K]V) *Iter[Pair[K, V]]
     FromMap creates a channel iterator over a map.
