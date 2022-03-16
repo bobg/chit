@@ -31,7 +31,7 @@ func (f *FilterIter[T]) Next() (T, bool) {
 		if !ok {
 			return x, false
 		}
-		if f(x) {
+		if f.f(x) {
 			return x, true
 		}
 	}
